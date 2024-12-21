@@ -257,6 +257,13 @@ else
   set -e
 fi
 
+## Stop and remove any previous instance of the shardeum-validator if it exists
+if docker-safe ps -a --filter "name=shardeum-validator" --format "{{.Names}}" | grep -q "^shardeum-validator$"; then
+    echo "Stopping and removing previous instance of shardeum-validator"
+    docker-safe stop shardeum-validator 2>/dev/null
+    docker-safe rm shardeum-validator 2>/dev/null
+fi
+
 ## Ensure that the node user can write to the $NODEHOME directory inside of the container, to do so the directory must be owned by UID 1000
 set +e
 mkdir -p ${NODEHOME} 
@@ -289,10 +296,9 @@ set -e
 echo "Downloading the shardeum-validator image and starting the validator container"
 
 ## Pull the latest image and run the validator
-read -p "enter your docker container name: " NODE_NAME
 docker-safe pull ghcr.io/shardeum/shardeum-validator:latest 
 docker-safe run \
-    --name $NODE_NAME \
+    --name shardeum-validator \
     -p ${DASHPORT}:${DASHPORT} \
     -p ${SHMEXT}:${SHMEXT} \
     -p ${SHMINT}:${SHMINT} \
